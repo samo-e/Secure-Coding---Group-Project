@@ -26,25 +26,25 @@ int main(int argc, char *argv[]) {
     fprintf(stderr, "Error: header invalid or unsupported (code %d)\n", result);
     bun_close(&ctx);
     return result;
-  } else {
-    printf("BUN header:\n"
-           "  magic: 0x%08X\n"
-           "  version: %u.%u\n"
-           "  asset_count: %u\n"
-           "  asset_table_offset: %llu\n"
-           "  string_table_offset: %llu\n"
-           "  string_table_size: %llu\n"
-           "  data_section_offset: %llu\n"
-           "  data_section_size: %llu\n"
-           "  reserved: %llu\n",
-           header.magic, header.version_major, header.version_minor,
-           header.asset_count, (unsigned long long)header.asset_table_offset,
-           (unsigned long long)header.string_table_offset,
-           (unsigned long long)header.string_table_size,
-           (unsigned long long)header.data_section_offset,
-           (unsigned long long)header.data_section_size,
-           (unsigned long long)header.reserved);
   }
+
+  printf("BUN header:\n"
+         "  magic: 0x%08X\n"
+         "  version: %u.%u\n"
+         "  asset_count: %u\n"
+         "  asset_table_offset: %llu\n"
+         "  string_table_offset: %llu\n"
+         "  string_table_size: %llu\n"
+         "  data_section_offset: %llu\n"
+         "  data_section_size: %llu\n"
+         "  reserved: %llu\n",
+         header.magic, header.version_major, header.version_minor,
+         header.asset_count, (unsigned long long)header.asset_table_offset,
+         (unsigned long long)header.string_table_offset,
+         (unsigned long long)header.string_table_size,
+         (unsigned long long)header.data_section_offset,
+         (unsigned long long)header.data_section_size,
+         (unsigned long long)header.reserved);
 
   result = bun_parse_assets(&ctx, &header);
 
