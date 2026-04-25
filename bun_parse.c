@@ -1,19 +1,36 @@
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <assert.h>
 
 #include "bun.h"
 
 /**
- * Example helper: convert 4 bytes in `buf`, positioned at `offset`,
+ * helper: convert 4 bytes in `buf`, positioned at `offset`,
  * into a little-endian u32.
  */
 static u32 read_u32_le(const u8 *buf, size_t offset) {
-  return (u32)buf[offset]
-     | (u32)buf[offset + 1] << 8
-     | (u32)buf[offset + 2] << 16
-     | (u32)buf[offset + 3] << 24;
+  return (u32)buf[offset] | (u32)buf[offset + 1] << 8 |
+         (u32)buf[offset + 2] << 16 | (u32)buf[offset + 3] << 24;
+}
+
+/**
+ * helper: convert 2 bytes in `buf`, positioned at `offset`,
+ * into a little-endian u16.
+ */
+static u16 read_u16_le(const u8 *buf, size_t offset) {
+  return (u16)buf[offset] | (u16)buf[offset + 1] << 8;
+}
+
+/**
+ * helper: convert 8 bytes in `buf`, positioned at `offset`,
+ * into a little-endian u64.
+ */
+static u64 read_u64_le(const u8 *buf, size_t offset) {
+  return (u64)buf[offset] | (u64)buf[offset + 1] << 8 |
+         (u64)buf[offset + 2] << 16 | (u64)buf[offset + 3] << 24 |
+         (u64)buf[offset + 4] << 32 | (u64)buf[offset + 5] << 40 |
+         (u64)buf[offset + 6] << 48 | (u64)buf[offset + 7] << 56;
 }
 
 //
@@ -59,13 +76,49 @@ bun_result_t bun_parse_header(BunParseContext *ctx, BunHeader *header) {
     return BUN_ERR_IO;
   }
 
-  // TODO: populate `header` from `buf`.
+  // populate header
 
-  // TODO: validate fields and return BUN_MALFORMED or BUN_UNSUPPORTED
-  // as required by the spec. The magic check is a good place to start.
+  size_t offset = 0;
+
+  header->magic = read_u32_le(buf, offset);
+  offset += sizeof(u32);
+
+  header->version_major = read_u16_le(buf, offset);
+  offset += sizeof(u16);
+
+  header->version_minor = read_u16_le(buf, offset);
+  offset += sizeof(u16);
+
+  header->asset_count = read_u32_le(buf, offset);
+  offset += sizeof(u32);
+
+  header->asset_table_offset = read_u64_le(buf, offset);
+  offset += sizeof(u64);
+
+  header->string_table_offset = read_u64_le(buf, offset);
+  offset += sizeof(u64);
+
+  header->string_table_size = read_u64_le(buf, offset);
+  offset += sizeof(u64);
+
+  header->data_section_offset = read_u64_le(buf, offset);
+  offset += sizeof(u64);
+
+  header->data_section_size = read_u64_le(buf, offset);
+  offset += sizeof(u64);
+
+  header->reserved = read_u64_le(buf, offset);
+  offset += sizeof(u64);
+
+  // validate fields
 
   if (header->magic != BUN_MAGIC) {
     return BUN_MALFORMED;
+  }
+
+  if (header->version_major != BUN_VERSION_MAJOR ||
+      header->version_minor != BUN_VERSION_MINOR) {
+    return BUN_UNSUPPORTED;
   }
 
   return BUN_OK;
